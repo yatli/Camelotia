@@ -43,6 +43,7 @@ namespace Camelotia.Presentation.Avalonia
                     new Dictionary<string, Func<ProviderModel, IProvider>>
                     {
                         ["Local File System"] = id => new LocalProvider(id),
+                        ["MegaCommand"] = id => new MegaCommandProvider(id),
                         ["Vkontakte Docs"] = id => new VkDocsProvider(id, cache),
                         ["Yandex Disk"] = id => new YandexDiskProvider(id, login, cache),
                         ["FTP"] = id => new FtpProvider(id),
