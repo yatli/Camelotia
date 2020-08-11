@@ -93,10 +93,9 @@ namespace Camelotia.Services.Providers
             return Task.CompletedTask;
         }
 
-        public async Task<IEnumerable<FileModel>> Get(string path)
+        private async Task cwd(string path)
         {
             path = path.Replace('\\', '/');
-            Console.WriteLine($"Get: path={path}");
             var cwd_payload = new List<byte>();
             cwd_payload.Add(/*FC_CWD*/0x00);
             cwd_payload.AddRange(Encoding.UTF8.GetBytes(path));
@@ -116,8 +115,15 @@ namespace Camelotia.Services.Providers
             }
 
             Console.WriteLine("ls: cwd ok");
+        }
 
-            tx = await _server.sendFrame(new Frame(
+        public async Task<IEnumerable<FileModel>> Get(string path)
+        {
+            path = path.Replace('\\', '/');
+            Console.WriteLine($"Get: path={path}");
+            await cwd(path);
+
+            var tx = await _server.sendFrame(new Frame(
                 ComType.FILESERVER,
                 new byte[] { /* FC_LS */ 0x01 }), true);
             if (tx != ComStatus.ACK) { throw new Exception("ls: ls tx"); }
@@ -155,8 +161,30 @@ namespace Camelotia.Services.Providers
         {
         }
 
-        public async Task DownloadFile(string from, Stream to)
+        public async Task DownloadFile(string path, Stream to)
         {
+            path = path.Replace('\\', '/');
+            Console.WriteLine($"DownloadFile: path={path}");
+            var dir = Path.GetDirectoryName(path);
+            var fname = Path.GetFileName(path);
+            await cwd(dir);
+
+            var get_payload = new List<byte>();
+            get_payload.Add(/*FC_GET*/0x02);
+            get_payload.AddRange(Encoding.UTF8.GetBytes(fname));
+            get_payload.Add(/*null string termination*/0x00);
+
+            var tx = await _server.sendFrame(new Frame(
+                ComType.FILESERVER, get_payload), true);
+            if (tx != ComStatus.ACK) { throw new Exception("get: get tx"); }
+            var ls = await _server.recvFrame();
+            while (ls.type == ComType.FILESERVER && ls.data[0] == 0x07)
+            {
+                var data = ls.data.Skip(1).ToArray();
+                await to.WriteAsync(data, 0, data.Length);
+                Console.WriteLine($"get: got {data.Length} bytes");
+                ls = await _server.recvFrame();
+            }
         }
 
         private async void EnsureLoggedInIfTokenSaved()
