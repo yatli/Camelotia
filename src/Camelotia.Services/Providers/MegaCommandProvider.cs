@@ -8,6 +8,8 @@ using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
 
+using Akavache;
+
 using Camelotia.Services.Interfaces;
 using Camelotia.Services.Models;
 
@@ -20,12 +22,15 @@ namespace Camelotia.Services.Providers
         private readonly ProviderModel _model;
         private readonly ISubject<bool> _isAuthorized = new ReplaySubject<bool>();
         private MegaCom.FileServer _server;
+        private readonly IBlobCache _blobCache;
 
-        public MegaCommandProvider(ProviderModel model)
+        public MegaCommandProvider(ProviderModel model, IBlobCache _cache)
         {
             _model = model;
+            _blobCache = _cache;
             _isAuthorized.OnNext(false);
             _server = null;
+            EnsureLoggedInIfTokenSaved();
         }
 
         public long? Size => null;
@@ -54,16 +59,29 @@ namespace Camelotia.Services.Providers
 
         public async Task DirectAuth(string login, string password)
         {
+            bool ok = openComlink(login);
+            if (ok) {
+                var persistentId = Id.ToString();
+                var model = await _blobCache.GetObject<ProviderModel>(persistentId);
+                model.Token = password;
+                model.User = login;
+                await _blobCache.InsertObject(persistentId, model);
+            }
+            _isAuthorized.OnNext(ok);
+        }
+
+        private bool openComlink(string login)
+        {
             try
             {
                 _server?.Dispose();
                 _server = null;
                 _server = new FileServer(login, 250000);
-                _isAuthorized.OnNext(true);
+                return true;
             }
             catch
             {
-
+                return false;
             }
         }
 
@@ -113,6 +131,7 @@ namespace Camelotia.Services.Providers
                 {
                     Name = ls_item.Name,
                     IsFolder = ls_item.IsDirectory,
+                    Size = ls_item.Size,
                     Path = Path.Combine(path, ls_item.Name),
                 });
                 ls = await _server.recvFrame();
@@ -138,6 +157,15 @@ namespace Camelotia.Services.Providers
 
         public async Task DownloadFile(string from, Stream to)
         {
+        }
+
+        private async void EnsureLoggedInIfTokenSaved()
+        {
+            var persistentId = Id.ToString();
+            var model = await _blobCache.GetOrFetchObject(persistentId, () => Task.FromResult(default(ProviderModel)));
+            if (model?.User == null) return;   
+
+            _isAuthorized.OnNext(openComlink(model?.User));
         }
     }
 }
