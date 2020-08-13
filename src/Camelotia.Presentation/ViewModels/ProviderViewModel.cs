@@ -197,26 +197,6 @@ namespace Camelotia.Presentation.ViewModels
                     .InvokeCommand(_refresh)
                     .DisposeWith(disposable);
 
-                Observable.Timer(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1))
-                    .Select(unit => RefreshingIn - 1)
-                    .Where(value => value >= 0)
-                    .ObserveOn(RxApp.MainThreadScheduler)
-                    .Subscribe(x => RefreshingIn = x)
-                    .DisposeWith(disposable);
-
-                this.WhenAnyValue(x => x.RefreshingIn)
-                    .Skip(1)
-                    .Where(refreshing => refreshing == 0)
-                    .Log(this, $"Refreshing provider {provider.Name} path {CurrentPath}")
-                    .Select(value => Unit.Default)
-                    .InvokeCommand(_refresh)
-                    .DisposeWith(disposable);
-
-                _refresh.Select(results => 30)
-                    .StartWith(30)
-                    .Subscribe(x => RefreshingIn = x)
-                    .DisposeWith(disposable);
-
                 this.WhenAnyValue(x => x.CanInteract)
                     .Skip(1)
                     .Where(interact => interact)
@@ -225,9 +205,6 @@ namespace Camelotia.Presentation.ViewModels
                     .DisposeWith(disposable);
             });
         }
-
-        [Reactive]
-        public int RefreshingIn { get; private set; }
 
         [Reactive]
         public IFileViewModel SelectedFile { get; set; }

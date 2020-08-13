@@ -25,19 +25,13 @@ namespace Camelotia.Tests.Services
             var provider = new AkavacheStorage(new Dictionary<string, Func<ProviderModel, IProvider>>
             {
                 [nameof(LocalProvider)] = id => new LocalProvider(id),
-                [nameof(VkDocsProvider)] = id => new VkDocsProvider(id, _blobCache),
-                [nameof(YandexDiskProvider)] = id => new YandexDiskProvider(id, _authenticator, _blobCache),
             }, _blobCache);
 
             await provider.Add(nameof(LocalProvider));
-            await provider.Add(nameof(VkDocsProvider));
-            await provider.Add(nameof(YandexDiskProvider));
             var providers = provider.Read().AsAggregator();
             
-            Assert.Equal(3, providers.Data.Count);
+            Assert.Equal(1, providers.Data.Count);
             Assert.Contains(providers.Data.Items, x => x is LocalProvider);
-            Assert.Contains(providers.Data.Items, x => x is VkDocsProvider);
-            Assert.Contains(providers.Data.Items, x => x is YandexDiskProvider);
         }
 
         [Fact]
@@ -53,8 +47,6 @@ namespace Camelotia.Tests.Services
 
             Assert.Equal(1, providers.Data.Count);
             Assert.Contains(providers.Data.Items, x => x is LocalProvider);
-            Assert.DoesNotContain(providers.Data.Items, x => x is VkDocsProvider);
-            Assert.DoesNotContain(providers.Data.Items, x => x is YandexDiskProvider);
         }
 
         [Fact]
@@ -96,8 +88,6 @@ namespace Camelotia.Tests.Services
             var providers = provider.Read().AsAggregator();
             Assert.Equal(1, providers.Data.Count);
             Assert.Contains(providers.Data.Items, x => x is LocalProvider);
-            Assert.DoesNotContain(providers.Data.Items, x => x is VkDocsProvider);
-            Assert.DoesNotContain(providers.Data.Items, x => x is YandexDiskProvider);
             Assert.Equal(identity, providers.Data.Items.First().Id);
         }
     }

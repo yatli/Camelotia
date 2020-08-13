@@ -47,8 +47,6 @@ namespace Camelotia.Presentation.Interfaces
         
         bool CanInteract { get; }
         
-        int RefreshingIn { get; }
-        
         string CurrentPath { get; }
         
         string Description { get; }

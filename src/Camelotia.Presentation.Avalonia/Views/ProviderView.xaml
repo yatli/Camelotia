@@ -148,11 +148,6 @@
                         Classes="Primary"
                         HorizontalAlignment="Stretch"
                         Command="{Binding UnselectFile}" />
-                <StackPanel Grid.Column="2" Orientation="Horizontal" 
-                            Margin="5" VerticalAlignment="Center">
-                    <TextBlock Text="Refreshing in: " />
-                    <TextBlock Text="{Binding RefreshingIn}" />
-                </StackPanel>
                 <Button Grid.Column="3" 
                         Content="Create" 
                         Classes="Primary"

@@ -21,7 +21,8 @@ namespace Camelotia.Services.Providers
     {
         private readonly ProviderModel _model;
         private readonly ISubject<bool> _isAuthorized = new ReplaySubject<bool>();
-        private MegaCom.FileServer _server;
+        private MegaCom.ComHost _host;
+        private MegaCom.MidiService _midi;
         private readonly IBlobCache _blobCache;
 
         public MegaCommandProvider(ProviderModel model, IBlobCache _cache)
@@ -29,7 +30,7 @@ namespace Camelotia.Services.Providers
             _model = model;
             _blobCache = _cache;
             _isAuthorized.OnNext(false);
-            _server = null;
+            _host = null;
             EnsureLoggedInIfTokenSaved();
         }
 
@@ -74,9 +75,10 @@ namespace Camelotia.Services.Providers
         {
             try
             {
-                _server?.Dispose();
-                _server = null;
-                _server = new FileServer(login, 250000);
+                _host?.Dispose();
+                _host = null;
+                _host = new ComHost(login);
+                _midi = new MidiService(_host);
                 return true;
             }
             catch
@@ -87,8 +89,10 @@ namespace Camelotia.Services.Providers
 
         public Task Logout()
         {
-            _server?.Dispose();
-            _server = null;
+            _midi?.Dispose();
+            _midi = null;
+            _host?.Dispose();
+            _host = null;
             _isAuthorized.OnNext(false);
             return Task.CompletedTask;
         }
@@ -100,39 +104,38 @@ namespace Camelotia.Services.Providers
             cwd_payload.Add(/*FC_CWD*/0x00);
             cwd_payload.AddRange(Encoding.UTF8.GetBytes(path));
             cwd_payload.Add(/*null string termination*/0x00);
-            var tx = await _server.sendFrame(new Frame(
-                ComType.FILESERVER, cwd_payload), true);
+            var tx = await _host.sendFrame(new Frame(ComType.FILESERVER, cwd_payload));
             if (tx != ComStatus.ACK) { throw new Exception("ls: cwd tx"); }
-            var rx = await _server.recvFrame();
+            var rx = await _host.recvFrame(ComType.FILESERVER);
             if (rx.data[0] != 0x06 /*FS_OK*/)
             {
                 if (rx.data[0] == 0x08 /*FS_ERROR*/)
                 {
                     string errmsg = Encoding.UTF8.GetString(rx.data.Skip(1).ToArray());
-                    Console.WriteLine($"ERR: {errmsg}");
+                    Log.WriteLine($"ERR: {errmsg}");
                 }
                 throw new Exception("ls: cwd not ok");
             }
 
-            Console.WriteLine("ls: cwd ok");
+            Log.WriteLine("ls: cwd ok");
         }
 
         public async Task<IEnumerable<FileModel>> Get(string path)
         {
             path = path.Replace('\\', '/');
-            Console.WriteLine($"Get: path={path}");
+            Log.WriteLine($"Get: path={path}");
             await cwd(path);
 
-            var tx = await _server.sendFrame(new Frame(
+            var tx = await _host.sendFrame(new Frame(
                 ComType.FILESERVER,
-                new byte[] { /* FC_LS */ 0x01 }), true);
+                new byte[] { /* FC_LS */ 0x01 }));
             if (tx != ComStatus.ACK) { throw new Exception("ls: ls tx"); }
             var files = new List<FileModel>();
-            var ls = await _server.recvFrame();
+            var ls = await _host.recvFrame(ComType.FILESERVER);
             while (ls.type == ComType.FILESERVER && ls.data[0] == 0x07)
             {
                 var ls_item = new LsItem(ls);
-                Console.WriteLine($"ls item: {ls_item.Name}");
+                Log.WriteLine($"ls item: {ls_item.Name}");
                 files.Add(new FileModel
                 {
                     Name = ls_item.Name,
@@ -140,7 +143,7 @@ namespace Camelotia.Services.Providers
                     Size = ls_item.Size,
                     Path = Path.Combine(path, ls_item.Name),
                 });
-                ls = await _server.recvFrame();
+                ls = await _host.recvFrame(ComType.FILESERVER);
             }
             return files;
         }
@@ -164,7 +167,7 @@ namespace Camelotia.Services.Providers
         public async Task DownloadFile(string path, Stream to)
         {
             path = path.Replace('\\', '/');
-            Console.WriteLine($"DownloadFile: path={path}");
+            Log.WriteLine($"DownloadFile: path={path}");
             var dir = Path.GetDirectoryName(path);
             var fname = Path.GetFileName(path);
             await cwd(dir);
@@ -174,17 +177,18 @@ namespace Camelotia.Services.Providers
             get_payload.AddRange(Encoding.UTF8.GetBytes(fname));
             get_payload.Add(/*null string termination*/0x00);
 
-            var tx = await _server.sendFrame(new Frame(
-                ComType.FILESERVER, get_payload), true);
+            var tx = await _host.sendFrame(new Frame(
+                ComType.FILESERVER, get_payload));
             if (tx != ComStatus.ACK) { throw new Exception("get: get tx"); }
-            var ls = await _server.recvFrame();
-            while (ls.type == ComType.FILESERVER && ls.data[0] == 0x07)
+            var ls = await _host.recvFrame(ComType.FILESERVER);
+            while (ls.data[0] == 0x07)
             {
                 var data = ls.data.Skip(1).ToArray();
                 await to.WriteAsync(data, 0, data.Length);
-                Console.WriteLine($"get: got {data.Length} bytes");
-                ls = await _server.recvFrame();
+                Log.WriteLine($"get: got {data.Length} bytes");
+                ls = await _host.recvFrame(ComType.FILESERVER);
             }
+            to.Close();
         }
 
         private async void EnsureLoggedInIfTokenSaved()
