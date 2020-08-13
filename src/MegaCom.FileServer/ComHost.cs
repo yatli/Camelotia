@@ -230,7 +230,12 @@ namespace MegaCom
 
             buf[buf.Length - 1] = (byte)(buf.Sum(_ => _) - 0x5a);
 
-            m_port.Write(buf, 0, buf.Length);
+            for(int i = 0; i < buf.Length; ++i)
+            {
+                // important: don't send batches. uart0 buffer will be overrun.
+                // send them one by one.
+                m_port.Write(buf, i, 1);
+            }
             if (!in_rx)
             {
                 // XXX exception
