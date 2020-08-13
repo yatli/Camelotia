@@ -61,8 +61,41 @@ namespace MegaCom
             {
                 try
                 {
-                    var frame = await m_pending_input.Reader.ReadAsync();
-                    await m_host.sendFrame(frame, cancel);
+                    int n_frames = m_pending_input.Reader.Count;
+                    //Console.WriteLine(n_frames);
+                    if (n_frames > 0)
+                    {
+                        var frm1 = new Frame(ComType.EXTMIDI, new List<byte>());
+                        var frm2 = new Frame(ComType.EXTMIDI, new List<byte>());
+
+                        frm1.data.Add(0);
+                        frm2.data.Add(1);
+
+                        for (int i = 0; i < n_frames; ++i)
+                        {
+                            var frame = await m_pending_input.Reader.ReadAsync();
+                            if(frame.data[0] == 0)
+                            {
+                                frm1.data.AddRange(frame.data.Skip(1));
+                            }else
+                            {
+                                frm2.data.AddRange(frame.data.Skip(1));
+                            }
+                        }
+                        if(frm1.data.Count > 1)
+                        {
+                            await m_host.sendFrame(frm1, cancel);
+                        }
+                        if (frm2.data.Count > 1)
+                        {
+                            await m_host.sendFrame(frm2, cancel);
+                        }
+                    }
+                    else
+                    {
+                        Frame frm = await m_pending_input.Reader.ReadAsync();
+                        await m_host.sendFrame(frm, cancel);
+                    }
                 }
                 catch (MegaComTimeoutException)
                 {
