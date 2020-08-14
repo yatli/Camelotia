@@ -1,56 +1,35 @@
 using Avalonia;
 using Avalonia.Markup.Xaml;
-using Camelotia.Presentation.Avalonia.Services;
-using Camelotia.Presentation.Avalonia.Views;
+using MegaCom.UI.Services;
+using MegaCom.UI.Views;
 using Camelotia.Presentation.ViewModels;
 using Camelotia.Services.Interfaces;
 using Camelotia.Services.Models;
 using Camelotia.Services.Providers;
-using Camelotia.Services.Storages;
 using System;
 using System.Collections.Generic;
+using MegaCom.UI.ViewModels;
 
-namespace Camelotia.Presentation.Avalonia
+namespace MegaCom.UI
 {
     public class App : Application
     {
+        private MegaCom.ComHost m_host;
+
         public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
         public override void OnFrameworkInitializationCompleted()
         {
-            Akavache.BlobCache.ApplicationName = "Camelotia";
-            var cache = Akavache.BlobCache.UserAccount;
-            var window = new MainView();
+            m_host = new MegaCom.ComHost("COM4");
+            var window = new MainWindow();
             var files = new AvaloniaFileManager(window);
             var styles = new AvaloniaStyleManager(window);
             window.SwitchThemeButton.Click += (sender, args) => styles.UseNextTheme(); 
 
-            var context = new MainViewModel(
-                (provider, auth) => new ProviderViewModel(
-                    model => new CreateFolderViewModel(model, provider),
-                    model => new RenameFileViewModel(model, provider),
-                    (file, model) => new FileViewModel(model, file),
-                    auth, files, provider
-                ),
-                provider => new AuthViewModel(
-                    new DirectAuthViewModel(provider),
-                    new HostAuthViewModel(provider),
-                    new OAuthViewModel(provider),
-                    provider
-                ),
-                new AkavacheStorage(
-                    new Dictionary<string, Func<ProviderModel, IProvider>>
-                    {
-                        ["Local File System"] = id => new LocalProvider(id),
-                        ["MegaCommand"] = id => new MegaCommandProvider(id, cache),
-                        ["FTP"] = id => new FtpProvider(id),
-                        ["SFTP"] = id => new SftpProvider(id),
-                    },
-                    cache
-                )
-            );
+            var file_vm = new FileBrowserViewModel(new AvaloniaFileManager(window), new MegaCommandProvider(m_host));
+            var main_vm = new MainWindowViewModel(file_vm);
 
-            window.DataContext = context;
+            window.DataContext = main_vm;
             window.Show();
             base.OnFrameworkInitializationCompleted();
         }

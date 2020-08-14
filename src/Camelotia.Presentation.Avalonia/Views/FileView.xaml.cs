@@ -9,7 +9,7 @@ using Avalonia.ReactiveUI;
 using Camelotia.Presentation.Interfaces;
 using ReactiveUI;
 
-namespace Camelotia.Presentation.Avalonia.Views
+namespace MegaCom.UI.Views
 {
     public sealed class FileView : ReactiveUserControl<IFileViewModel>
     {

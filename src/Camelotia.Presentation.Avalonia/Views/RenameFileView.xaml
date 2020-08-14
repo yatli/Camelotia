@@ -3,7 +3,7 @@
              d:DataContext="{d:DesignInstance interfaces:IRenameFileViewModel, IsDesignTimeCreatable=False}"
              xmlns:interfaces="clr-namespace:Camelotia.Presentation.Interfaces;assembly=Camelotia.Presentation"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             x:Class="Camelotia.Presentation.Avalonia.Views.RenameFileView"
+             x:Class="MegaCom.UI.Views.RenameFileView"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              mc:Ignorable="d" Background="{DynamicResource ThemeCardBrush}">
     <StackPanel VerticalAlignment="Center"

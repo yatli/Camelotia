@@ -34,7 +34,7 @@ namespace MegaCom
         {
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.RealTime;
             int speed = 250000;
-            Log.LogToStdout = false;
+            Log.LogToStdout = true;
             Log.WriteLine($"Connecting to serial port {port}@{speed}");
             m_rxbuf = new List<byte>();
             m_port = new SerialPort(port, speed);
@@ -209,8 +209,11 @@ namespace MegaCom
                 }
                 await m_portlock.WaitAsync();
                 _status = m_txstatus = new TaskCompletionSource<ComStatus>();
+
+                int timeout = m_comtype_realtime[(int)frame.type] ? 10 : 200;
+
                 var timeout_cancel = new CancellationTokenSource();
-                timeout_cancel.CancelAfter(10);
+                timeout_cancel.CancelAfter(timeout);
                 timeout_cancel.Token.Register(() => _status.TrySetException(new MegaComTimeoutException()));
             }
 

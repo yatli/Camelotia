@@ -7,9 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Camelotia.Services", "Camel
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Camelotia.Presentation", "Camelotia.Presentation\Camelotia.Presentation.csproj", "{777FBFA6-ECFA-42F5-AC5F-EFC4B2D4AE6B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Camelotia.Presentation.Avalonia", "Camelotia.Presentation.Avalonia\Camelotia.Presentation.Avalonia.csproj", "{557CB17D-8989-48E5-82FD-3C2106EE4BAE}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Camelotia.Tests", "Camelotia.Tests\Camelotia.Tests.csproj", "{AE41666B-41D1-4044-9752-7CD4460C1A90}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MegaCom.UI", "Camelotia.Presentation.Avalonia\MegaCom.UI.csproj", "{557CB17D-8989-48E5-82FD-3C2106EE4BAE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MegaCom.Communication", "MegaCom.FileServer\MegaCom.Communication.csproj", "{5F8CC0BC-BC5E-4E57-A77B-E43DDF1A4795}"
 EndProject
@@ -89,26 +87,6 @@ Global
 		{557CB17D-8989-48E5-82FD-3C2106EE4BAE}.Release|x64.Build.0 = Release|Any CPU
 		{557CB17D-8989-48E5-82FD-3C2106EE4BAE}.Release|x86.ActiveCfg = Release|Any CPU
 		{557CB17D-8989-48E5-82FD-3C2106EE4BAE}.Release|x86.Build.0 = Release|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Debug|ARM.Build.0 = Debug|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Debug|ARM64.ActiveCfg = Debug|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Debug|ARM64.Build.0 = Debug|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Debug|x64.Build.0 = Debug|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Debug|x86.Build.0 = Debug|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Release|ARM.ActiveCfg = Release|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Release|ARM.Build.0 = Release|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Release|ARM64.ActiveCfg = Release|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Release|ARM64.Build.0 = Release|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Release|x64.ActiveCfg = Release|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Release|x64.Build.0 = Release|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Release|x86.ActiveCfg = Release|Any CPU
-		{AE41666B-41D1-4044-9752-7CD4460C1A90}.Release|x86.Build.0 = Release|Any CPU
 		{5F8CC0BC-BC5E-4E57-A77B-E43DDF1A4795}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5F8CC0BC-BC5E-4E57-A77B-E43DDF1A4795}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F8CC0BC-BC5E-4E57-A77B-E43DDF1A4795}.Debug|ARM.ActiveCfg = Debug|Any CPU

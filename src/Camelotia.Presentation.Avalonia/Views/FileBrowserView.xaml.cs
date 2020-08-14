@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using Camelotia.Presentation.Interfaces;
@@ -5,11 +6,10 @@ using ReactiveUI;
 
 namespace MegaCom.UI.Views
 {
-    public sealed class CreateFolderView : ReactiveUserControl<ICreateFolderViewModel>
+    public sealed class FileBrowserView : UserControl
     {
-        public CreateFolderView()
+        public FileBrowserView()
         {
-            this.WhenActivated(disposables => { });
             AvaloniaXamlLoader.Load(this);
         }
     }

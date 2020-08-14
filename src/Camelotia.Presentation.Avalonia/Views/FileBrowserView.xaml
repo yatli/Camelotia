@@ -1,0 +1,11 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        d:DataContext="{d:DesignInstance interfaces:IFileBrowserViewModel, IsDesignTimeCreatable=True}"
+        xmlns:interfaces="clr-namespace:Camelotia.Presentation.Interfaces;assembly=Camelotia.Presentation"
+        xmlns:views="clr-namespace:MegaCom.UI.Views"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        x:Class="MegaCom.UI.Views.FileBrowserView"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        mc:Ignorable="d">
+  <views:ProviderView DataContext="{Binding SelectedProvider}" />
+</UserControl>

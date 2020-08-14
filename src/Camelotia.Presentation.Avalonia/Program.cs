@@ -2,7 +2,7 @@
 using Avalonia.ReactiveUI;
 using Avalonia.Logging.Serilog;
 
-namespace Camelotia.Presentation.Avalonia
+namespace MegaCom.UI
 {
     public sealed class Program
     {

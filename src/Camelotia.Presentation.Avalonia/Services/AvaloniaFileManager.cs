@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Camelotia.Services.Interfaces;
 
-namespace Camelotia.Presentation.Avalonia.Services
+namespace MegaCom.UI.Services
 {
     public sealed class AvaloniaFileManager : IFileManager
     {

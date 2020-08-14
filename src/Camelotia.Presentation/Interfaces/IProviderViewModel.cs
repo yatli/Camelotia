@@ -9,8 +9,6 @@ namespace Camelotia.Presentation.Interfaces
     {
         Guid Id { get; }
         
-        IAuthViewModel Auth { get; }
-
         IRenameFileViewModel Rename { get; }
 
         ICreateFolderViewModel Folder { get; }

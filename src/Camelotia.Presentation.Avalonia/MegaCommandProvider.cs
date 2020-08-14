@@ -8,8 +8,6 @@ using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
 
-using Akavache;
-
 using Camelotia.Services.Interfaces;
 using Camelotia.Services.Models;
 
@@ -19,34 +17,32 @@ namespace Camelotia.Services.Providers
 {
     public sealed class MegaCommandProvider : IProvider
     {
-        private readonly ProviderModel _model;
         private readonly ISubject<bool> _isAuthorized = new ReplaySubject<bool>();
         private MegaCom.ComHost _host;
-        private MegaCom.MidiProxy _midi;
-        private readonly IBlobCache _blobCache;
+        private Guid _id;
+        private DateTime _created;
 
-        public MegaCommandProvider(ProviderModel model, IBlobCache _cache)
+        public MegaCommandProvider(ComHost host)
         {
-            _model = model;
-            _blobCache = _cache;
-            _isAuthorized.OnNext(false);
-            _host = null;
-            EnsureLoggedInIfTokenSaved();
+            _host = host;
+            _isAuthorized.OnNext(true);
+            _id = Guid.NewGuid();
+            _created = DateTime.Now;
         }
 
         public long? Size => null;
 
-        public Guid Id => _model.Id;
+        public Guid Id => _id; 
 
         public string InitialPath => "\\";
 
-        public string Name => $"{_model.Type}-{_model.User}";
+        public string Name => $"MegaCommand";
 
-        public DateTime Created => _model.Created;
+        public DateTime Created => _created;
 
         public IObservable<bool> IsAuthorized => _isAuthorized;
 
-        public bool SupportsDirectAuth => true;
+        public bool SupportsDirectAuth => false;
 
         public bool SupportsHostAuth => false;
 
@@ -58,44 +54,9 @@ namespace Camelotia.Services.Providers
 
         public Task HostAuth(string address, int port, string login, string password) => Task.CompletedTask;
 
-        public async Task DirectAuth(string login, string password)
-        {
-            bool ok = openComlink(login);
-            if (ok) {
-                var persistentId = Id.ToString();
-                var model = await _blobCache.GetObject<ProviderModel>(persistentId);
-                model.Token = password;
-                model.User = login;
-                await _blobCache.InsertObject(persistentId, model);
-            }
-            _isAuthorized.OnNext(ok);
-        }
+        public Task DirectAuth(string login, string password) => Task.CompletedTask;
 
-        private bool openComlink(string login)
-        {
-            try
-            {
-                _host?.Dispose();
-                _host = null;
-                _host = new ComHost(login);
-                _midi = new MidiProxy(_host);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public Task Logout()
-        {
-            _midi?.Dispose();
-            _midi = null;
-            _host?.Dispose();
-            _host = null;
-            _isAuthorized.OnNext(false);
-            return Task.CompletedTask;
-        }
+        public Task Logout() => Task.CompletedTask;
 
         private async Task cwd(string path)
         {
@@ -189,15 +150,6 @@ namespace Camelotia.Services.Providers
                 ls = await _host.recvFrame(ComType.FILESERVER);
             }
             to.Close();
-        }
-
-        private async void EnsureLoggedInIfTokenSaved()
-        {
-            var persistentId = Id.ToString();
-            var model = await _blobCache.GetOrFetchObject(persistentId, () => Task.FromResult(default(ProviderModel)));
-            if (model?.User == null) return;   
-
-            _isAuthorized.OnNext(openComlink(model?.User));
         }
     }
 }

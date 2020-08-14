@@ -2,7 +2,7 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml.Styling;
 
-namespace Camelotia.Presentation.Avalonia.Services
+namespace MegaCom.UI.Services
 {
     // Borrowed from https://github.com/worldbeater/citrus.avalonia
     public sealed class AvaloniaStyleManager
