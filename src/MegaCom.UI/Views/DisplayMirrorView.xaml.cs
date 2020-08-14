@@ -4,16 +4,11 @@ using Avalonia.Markup.Xaml;
 
 namespace MegaCom.UI.Views
 {
-    public class MainWindow : Window
+    public class DisplayMirrorView : UserControl
     {
-        public Button SwitchThemeButton => this.FindControl<Button>("SwitchThemeButton");
-        public ListBox AppPages => this.FindControl<ListBox>("AppPages");
-        public MainWindow()
+        public DisplayMirrorView()
         {
             this.InitializeComponent();
-#if DEBUG
-            this.AttachDevTools();
-#endif
         }
 
         private void InitializeComponent()

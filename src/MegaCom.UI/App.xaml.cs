@@ -27,7 +27,8 @@ namespace MegaCom.UI
             window.SwitchThemeButton.Click += (sender, args) => styles.UseNextTheme(); 
 
             var file_vm = new FileBrowserViewModel(new AvaloniaFileManager(window), new MegaCommandProvider(m_host));
-            var main_vm = new MainWindowViewModel(file_vm);
+            var disp_vm = new DisplayMirrorViewModel();
+            var main_vm = new MainWindowViewModel(file_vm, disp_vm);
 
             window.DataContext = main_vm;
             window.Show();

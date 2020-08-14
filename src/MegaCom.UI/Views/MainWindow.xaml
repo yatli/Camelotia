@@ -40,9 +40,11 @@
                  FontSize="17"
                  Margin="12" />
       <ListBox Grid.Row="2"
-                     Padding="0" BorderThickness="0"
-                     SelectedItem="{Binding SelectedProvider, Mode=TwoWay}"
-                     Background="Transparent">
+               Name="AppPages"
+               Padding="0" BorderThickness="0"
+               SelectionMode="Single"
+               SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
+               Background="Transparent">
           <TextBlock Margin="10" Text="File Browser" FontSize="15" />
           <TextBlock Margin="10" Text="Display Mirror" FontSize="15" />
           <TextBlock Margin="10" Text="Log Monitor" FontSize="15" />
@@ -59,8 +61,6 @@
                 Content="Switch Theme" />
       </Grid>
     </Grid>
-    <Grid Grid.Column="1">
-      <views:FileBrowserView DataContext="{Binding FileBrowser}" />
-    </Grid>
+    <UserControl Grid.Column="1" Content="{Binding CurrentViewModel}" />
   </Grid>
 </Window>
