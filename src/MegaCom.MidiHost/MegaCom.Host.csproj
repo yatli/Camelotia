@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MegaCom.FileServer\MegaCom.Host.csproj" />
+    <ProjectReference Include="..\MegaCom.FileServer\MegaCom.Communication.csproj" />
   </ItemGroup>
 
 </Project>

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace MegaCom
 {
-    public class MidiService : IDisposable
+    public class MidiProxy : IDisposable
     {
         CancellationTokenSource m_cancel;
         private ComHost m_host;
@@ -18,7 +18,7 @@ namespace MegaCom
         private IMidiInput m_input2;
         private Channel<Frame> m_pending_input;
 
-        public MidiService(ComHost host)
+        public MidiProxy(ComHost host)
         {
             m_cancel = new CancellationTokenSource();
             m_host = host;
@@ -74,15 +74,16 @@ namespace MegaCom
                         for (int i = 0; i < n_frames; ++i)
                         {
                             var frame = await m_pending_input.Reader.ReadAsync();
-                            if(frame.data[0] == 0)
+                            if (frame.data[0] == 0)
                             {
                                 frm1.data.AddRange(frame.data.Skip(1));
-                            }else
+                            }
+                            else
                             {
                                 frm2.data.AddRange(frame.data.Skip(1));
                             }
                         }
-                        if(frm1.data.Count > 1)
+                        if (frm1.data.Count > 1)
                         {
                             await m_host.sendFrame(frm1, cancel);
                         }
@@ -118,12 +119,34 @@ namespace MegaCom
             var output1 = await midi_access.OpenOutputAsync(output1_desc.Id);
             var output2 = await midi_access.OpenOutputAsync(output2_desc.Id);
 
+            var parser1 = new MidiParser();
+            var parser2 = new MidiParser();
+
             while (!cancel.IsCancellationRequested)
             {
                 try
                 {
                     var frame = await m_host.recvFrame(ComType.EXTMIDI, cancel);
-                    //Log.WriteLine(String.Join(" ", frame.data.Select(_ => $"{_:x2}")));
+                    var port = frame.data[0];
+                    MidiParser parser;
+                    IMidiOutput output;
+                    if (port == 0)
+                    {
+                        parser = parser1;
+                        output = output1;
+                    }
+                    else
+                    {
+                        parser = parser2;
+                        output = output2;
+                    }
+                    for (int i = 1; i < frame.data.Count; ++i)
+                    {
+                        if (parser.feed(frame.data[i], out var buf, out var len))
+                        {
+                            output.Send(buf, 0, len, -1);
+                        }
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -131,6 +154,5 @@ namespace MegaCom
                 }
             }
         }
-
     }
 }

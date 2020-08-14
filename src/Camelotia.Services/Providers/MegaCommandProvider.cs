@@ -22,7 +22,7 @@ namespace Camelotia.Services.Providers
         private readonly ProviderModel _model;
         private readonly ISubject<bool> _isAuthorized = new ReplaySubject<bool>();
         private MegaCom.ComHost _host;
-        private MegaCom.MidiService _midi;
+        private MegaCom.MidiProxy _midi;
         private readonly IBlobCache _blobCache;
 
         public MegaCommandProvider(ProviderModel model, IBlobCache _cache)
@@ -78,7 +78,7 @@ namespace Camelotia.Services.Providers
                 _host?.Dispose();
                 _host = null;
                 _host = new ComHost(login);
-                _midi = new MidiService(_host);
+                _midi = new MidiProxy(_host);
                 return true;
             }
             catch

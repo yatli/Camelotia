@@ -11,9 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Camelotia.Presentation.Aval
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Camelotia.Tests", "Camelotia.Tests\Camelotia.Tests.csproj", "{AE41666B-41D1-4044-9752-7CD4460C1A90}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MegaCom.Host", "MegaCom.FileServer\MegaCom.Host.csproj", "{5F8CC0BC-BC5E-4E57-A77B-E43DDF1A4795}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MegaCom.Communication", "MegaCom.FileServer\MegaCom.Communication.csproj", "{5F8CC0BC-BC5E-4E57-A77B-E43DDF1A4795}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MegaCom.MidiHost", "MegaCom.MidiHost\MegaCom.MidiHost.csproj", "{9C71A583-1B1A-4658-839C-59CA2B8F22F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MegaCom.Host", "MegaCom.MidiHost\MegaCom.Host.csproj", "{9C71A583-1B1A-4658-839C-59CA2B8F22F2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
