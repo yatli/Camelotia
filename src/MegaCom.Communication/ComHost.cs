@@ -15,6 +15,9 @@ namespace MegaCom
 {
     public class ComHost : IDisposable
     {
+        private const byte COMSYNC_TOKEN = 0x5a;
+        private const int COM_SPEED = 250000;
+
         private SerialPort m_port;
         private List<byte> m_rxbuf;
         private RxState m_rxstate;
@@ -23,24 +26,28 @@ namespace MegaCom
         private ushort m_rxlen;
         private ushort m_rxpending;
         private Channel<byte[]> m_rx;
-        private const byte COMSYNC_TOKEN = 0x5a;
         private TaskCompletionSource<ComStatus> m_txstatus;
         private Channel<Frame>[] m_recvframes;
         private SemaphoreSlim m_portlock;
-        private bool[] m_comtype_realtime;
         private CancellationTokenSource m_cancelsrc;
 
-        public ComHost(string port)
+        private static readonly bool[] s_comtype_realtime;
+        static ComHost()
         {
-            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.RealTime;
-            int speed = 250000;
-            Log.LogToStdout = true;
-            Log.WriteLine($"Connecting to serial port {port}@{speed}");
-            m_rxbuf = new List<byte>();
-            m_port = new SerialPort(port, speed);
+            int ntypes = (int)ComType.MAX;
+            s_comtype_realtime = new bool[ntypes];
+            s_comtype_realtime[(int)ComType.EXTMIDI] = true;
+            s_comtype_realtime[(int)ComType.DEBUG] = true;
+        }
+
+        public ComHost()
+        {
+            m_port = new SerialPort();
             m_port.DataReceived += onDataReceived;
-            m_port.Open();
-            Log.WriteLine($"Connected to serial port {port}@{speed}");
+
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.RealTime;
+            Log.LogToStdout = true;
+            m_rxbuf = new List<byte>();
             m_txstatus = null;
             m_rx = Channel.CreateUnbounded<byte[]>();// new UnboundedChannelOptions { AllowSynchronousContinuations = false, SingleReader = true, SingleWriter = true });
 
@@ -52,12 +59,27 @@ namespace MegaCom
             }
 
             m_portlock = new SemaphoreSlim(1);
-            m_comtype_realtime = new bool[ntypes];
-            m_comtype_realtime[(int)ComType.EXTMIDI] = true;
-            m_comtype_realtime[(int)ComType.DEBUG] = true;
-
             m_cancelsrc = new CancellationTokenSource();
             RxProc();
+        }
+
+        public bool Connected => m_port.IsOpen;
+
+        public string PortName => m_port.PortName;
+
+        public void OpenPort(string port)
+        {
+            if(m_port.IsOpen)
+            {
+                m_port.Close();
+            }
+
+            m_port.PortName = port;
+            m_port.BaudRate = COM_SPEED;
+
+            Log.WriteLine($"Connecting to serial port {port}@{m_port.BaudRate}");
+            m_port.Open();
+            Log.WriteLine($"Connected to serial port {port}@{m_port.BaudRate}");
         }
 
         private async void RxProc()
@@ -210,7 +232,7 @@ namespace MegaCom
                 await m_portlock.WaitAsync();
                 _status = m_txstatus = new TaskCompletionSource<ComStatus>();
 
-                int timeout = m_comtype_realtime[(int)frame.type] ? 10 : 200;
+                int timeout = s_comtype_realtime[(int)frame.type] ? 10 : 200;
 
                 var timeout_cancel = new CancellationTokenSource();
                 timeout_cancel.CancelAfter(timeout);

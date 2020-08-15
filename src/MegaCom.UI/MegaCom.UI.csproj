@@ -13,6 +13,7 @@
     <PackageReference Include="Citrus.Avalonia" Version="1.2.6" />
     <PackageReference Include="ReactiveUI" Version="11.4.17" />
     <PackageReference Include="ReactiveUI.Fody" Version="11.4.17" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,9 +33,15 @@
   <ItemGroup>
     <None Remove="Views\DisplayMirrorView.xaml" />
     <None Remove="Views\MainWindow.xaml" />
+    <None Remove="Views\PortStatusView.xaml" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="MegaComSettings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MegaComSettings.settings</DependentUpon>
+    </Compile>
     <Compile Update="Views\FileBrowserView.xaml.cs">
       <DependentUpon>FileBrowserView.xaml</DependentUpon>
     </Compile>
@@ -50,6 +57,16 @@
     <EmbeddedResource Update="Views\DisplayMirrorView.xaml">
       <Generator></Generator>
     </EmbeddedResource>
+    <EmbeddedResource Update="Views\PortStatusView.xaml">
+      <Generator></Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="MegaComSettings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>MegaComSettings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
 </Project>

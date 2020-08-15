@@ -10,5 +10,7 @@ namespace MegaCom.UI.ViewModels
     {
         [Reactive]
         public byte[] FrameBuffer { get; set; }
+
+        public override string Name => "Display Mirror";
     }
 }

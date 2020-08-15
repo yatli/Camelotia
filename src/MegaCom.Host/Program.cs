@@ -9,8 +9,9 @@ namespace MegaCom.MidiHost
     {
         static async Task Main(string[] args)
         {
-            var comhost = new ComHost("com4");
+            var comhost = new ComHost();
             var midihost = new MidiProxy(comhost);
+            comhost.OpenPort("com4");
             while (true)
             {
                 var debug = await comhost.recvFrame(ComType.DEBUG);

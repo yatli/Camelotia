@@ -29,5 +29,7 @@ namespace MegaCom.UI.ViewModels
         }
         
         public IProviderViewModel SelectedProvider { get; }
+
+        public override string Name => "File Browser";
     }
 }
