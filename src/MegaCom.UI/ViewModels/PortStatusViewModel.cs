@@ -42,6 +42,7 @@ namespace MegaCom.UI.ViewModels
                 Connected = m_host.Connected;
             });
 
+            Console.WriteLine(MegaComSettings.Default.Port);
             PortName = MegaComSettings.Default.Port;
             Connected = m_host.Connected;
         }

@@ -4,6 +4,7 @@
              x:Class="MegaCom.UI.App">
     <Application.Styles>
         <StyleInclude Source="avares://Citrus.Avalonia/Citrus.xaml"/>
+        <StyleInclude Source="resm:AvaloniaEdit.AvaloniaEdit.xaml?assembly=AvaloniaEdit" />
     </Application.Styles>
   <Application.DataTemplates>
     <local:ViewLocator/>
