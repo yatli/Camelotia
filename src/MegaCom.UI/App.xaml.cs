@@ -29,7 +29,8 @@ namespace MegaCom.UI
             var file_vm = new FileBrowserViewModel(new AvaloniaFileManager(window), new MegaCommandProvider(m_host));
             var disp_vm = new DisplayMirrorViewModel();
             var port_vm = new PortStatusViewModel(m_host);
-            var main_vm = new MainWindowViewModel(file_vm, disp_vm, port_vm);
+            var debug_vm = new DebugViewModel(m_host);
+            var main_vm = new MainWindowViewModel(file_vm, disp_vm, port_vm, debug_vm);
 
             window.DataContext = main_vm;
             window.Show();

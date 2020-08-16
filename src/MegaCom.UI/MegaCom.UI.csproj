@@ -7,9 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.9.10" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.9.10" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.9.10" />
+    <PackageReference Include="Avalonia" Version="0.9.12" />
+    <PackageReference Include="Avalonia.AvaloniaEdit" Version="0.9.0-preview1" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.9.12" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.9.12" />
     <PackageReference Include="Citrus.Avalonia" Version="1.2.6" />
     <PackageReference Include="ReactiveUI" Version="11.4.17" />
     <PackageReference Include="ReactiveUI.Fody" Version="11.4.17" />
@@ -31,6 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Views\DebugView.xaml" />
     <None Remove="Views\DisplayMirrorView.xaml" />
     <None Remove="Views\MainWindow.xaml" />
     <None Remove="Views\PortStatusView.xaml" />
@@ -48,6 +50,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Views\DebugView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
     <EmbeddedResource Update="Views\MainWindow.xaml">
       <Generator></Generator>
     </EmbeddedResource>
