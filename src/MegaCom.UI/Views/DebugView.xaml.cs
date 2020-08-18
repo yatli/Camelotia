@@ -9,6 +9,8 @@ using MegaCom.UI.ViewModels;
 
 using ReactiveUI;
 
+using System.Reflection;
+
 namespace MegaCom.UI.Views
 {
     public class DebugView : ReactiveUserControl<DebugViewModel>
@@ -21,8 +23,12 @@ namespace MegaCom.UI.Views
             {
                 ViewModel.Updated += () =>
                 {
-                    TextEditor.ScrollToEnd();
-                    TextEditor.InvalidateVisual();
+                    // hack until we have https://github.com/AvaloniaUI/AvaloniaEdit/pull/107
+                    var sv = (ScrollViewer)typeof(TextEditor).GetProperty("ScrollViewer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(TextEditor);
+                    if (sv != null)
+                    {
+                        sv.Offset = sv.Offset.WithY(100000);
+                    }
                 };
             });
         }

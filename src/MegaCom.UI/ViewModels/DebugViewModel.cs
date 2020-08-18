@@ -43,9 +43,10 @@ namespace MegaCom.UI.ViewModels
             Dispatcher.UIThread.InvokeAsync(() =>
             {
                 Document.Insert(Document.TextLength, v);
-                if (Document.LineCount > 1000)
+                if (Document.LineCount > 1024)
                 {
-                    Document.Remove(Document.Lines[0]);
+                    var line = Document.Lines[0];
+                    Document.Remove(line.Offset, line.Length + 1);
                 }
             });
             Updated();
