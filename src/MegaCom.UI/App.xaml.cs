@@ -27,10 +27,11 @@ namespace MegaCom.UI
             window.SwitchThemeButton.Click += (sender, args) => styles.UseNextTheme(); 
 
             var file_vm = new FileBrowserViewModel(new AvaloniaFileManager(window), new MegaCommandProvider(m_host));
-            var disp_vm = new DisplayMirrorViewModel();
+            var disp_vm = new DisplayMirrorViewModel(m_host);
             var port_vm = new PortStatusViewModel(m_host);
+            var midi_vm = new MidiProxyViewModel(m_host);
             var debug_vm = new DebugViewModel(m_host);
-            var main_vm = new MainWindowViewModel(file_vm, disp_vm, port_vm, debug_vm);
+            var main_vm = new MainWindowViewModel(file_vm, disp_vm, port_vm, midi_vm, debug_vm);
 
             window.DataContext = main_vm;
             window.Show();

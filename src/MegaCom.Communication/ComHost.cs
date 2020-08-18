@@ -26,7 +26,7 @@ namespace MegaCom
         private ushort m_rxlen;
         private ushort m_rxpending;
         private Channel<byte[]> m_rx;
-        private TaskCompletionSource<ComStatus> m_txstatus;
+        private TaskCompletionSource<ComStatus>[] m_txstatus;
         private Channel<Frame>[] m_recvframes;
         private SemaphoreSlim m_portlock;
         private CancellationTokenSource m_cancelsrc;
@@ -42,16 +42,16 @@ namespace MegaCom
 
         public ComHost()
         {
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.RealTime;
             m_port = new SerialPort();
             m_port.DataReceived += onDataReceived;
 
-            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.RealTime;
+            int ntypes = (int)ComType.MAX;
             Log.LogToStdout = true;
             m_rxbuf = new List<byte>();
-            m_txstatus = null;
+            m_txstatus = new TaskCompletionSource<ComStatus>[ntypes];
             m_rx = Channel.CreateUnbounded<byte[]>();// new UnboundedChannelOptions { AllowSynchronousContinuations = false, SingleReader = true, SingleWriter = true });
 
-            int ntypes = (int)ComType.MAX;
             m_recvframes = new Channel<Frame>[ntypes];
             for (int i = 0; i < ntypes; ++i)
             {
@@ -69,7 +69,7 @@ namespace MegaCom
 
         public void OpenPort(string port)
         {
-            if(m_port.IsOpen)
+            if (m_port.IsOpen)
             {
                 m_port.Close();
             }
@@ -135,7 +135,7 @@ namespace MegaCom
                 case RxState.LEN2:
                     m_rxlen = (ushort)((m_rxlen << 8) + data);
                     m_rxpending = m_rxlen;
-                    if (m_rxlen == 0)
+                    if (m_rxlen == 0 || m_rxtype >= ComType.UNSUPPORTED)
                     {
                         m_rxstate = RxState.CHECKSUM;
                     }
@@ -154,31 +154,40 @@ namespace MegaCom
                     }
                     break;
                 case RxState.CHECKSUM:
-                    Log.WriteLine($"RX frame: {m_rxtype}");
+                    //Log.WriteLine($"RX frame: {m_rxtype}");
                     m_rxstate = RxState.SYNC;
                     await m_portlock.WaitAsync();
                     if (m_rxtype == ComType.REQUEST_RESEND)
                     {
                         m_rxbuf.Clear();
-                        m_txstatus?.TrySetResult(ComStatus.RESEND);
-                        m_txstatus = null;
+                        if (m_rxchksum == data)
+                        {
+                            m_txstatus[m_rxlen]?.TrySetResult(ComStatus.RESEND);
+                            m_txstatus[m_rxlen] = null;
+                        }
                     }
                     else if (m_rxtype == ComType.ACK)
                     {
                         m_rxbuf.Clear();
-                        m_txstatus?.TrySetResult(ComStatus.ACK);
-                        m_txstatus = null;
+                        if (m_rxchksum == data)
+                        {
+                            m_txstatus[m_rxlen]?.TrySetResult(ComStatus.ACK);
+                            m_txstatus[m_rxlen] = null;
+                        }
                     }
                     else if (m_rxtype == ComType.UNSUPPORTED)
                     {
                         m_rxbuf.Clear();
-                        m_txstatus?.TrySetResult(ComStatus.UNSUPPORTED);
-                        m_txstatus = null;
+                        if (m_rxchksum == data)
+                        {
+                            m_txstatus[m_rxlen]?.TrySetResult(ComStatus.UNSUPPORTED);
+                            m_txstatus[m_rxlen] = null;
+                        }
                     }
                     else if (m_rxchksum == data)
                     {
                         // incoming data frame, ack it
-                        await sendFrame_impl(new Frame(ComType.ACK), true, false, CancellationToken.None);
+                        await sendFrame_impl(new Frame(ComType.ACK, m_rxtype), true, false, CancellationToken.None);
                         await m_recvframes[(int)m_rxtype].Writer.WriteAsync(new Frame(m_rxtype, m_rxbuf));
                         m_rxbuf = new List<byte>();
                     }
@@ -187,7 +196,7 @@ namespace MegaCom
                         // wrong data in buffer, drain and request a resend
                         m_rxbuf.Clear();
                         // must be true here because we just unlocked rx state
-                        await sendFrame_impl(new Frame(ComType.REQUEST_RESEND), true, false, CancellationToken.None);
+                        await sendFrame_impl(new Frame(ComType.REQUEST_RESEND, m_rxtype), true, false, CancellationToken.None);
                     }
                     m_portlock.Release();
                     break;
@@ -216,9 +225,10 @@ namespace MegaCom
 
         private async Task<ComStatus> sendFrame_impl(Frame frame, bool in_rx, bool require_ack, CancellationToken cancel)
         {
+            byte type = (byte)frame.type;
             if (!in_rx)
             {
-                var _status = m_txstatus;
+                var _status = m_txstatus[type];
                 if (_status != null)
                 {
                     try
@@ -230,7 +240,7 @@ namespace MegaCom
                     }
                 }
                 await m_portlock.WaitAsync();
-                _status = m_txstatus = new TaskCompletionSource<ComStatus>();
+                _status = m_txstatus[type] = new TaskCompletionSource<ComStatus>();
 
                 int timeout = s_comtype_realtime[(int)frame.type] ? 10 : 200;
 
@@ -239,14 +249,25 @@ namespace MegaCom
                 timeout_cancel.Token.Register(() => _status.TrySetException(new MegaComTimeoutException()));
             }
 
-            Log.WriteLine($"TX frame: {frame.type}");
+            //Log.WriteLine($"TX frame: {frame.type}");
 
             int len = frame.data?.Count ?? 0;
             byte[] buf = new byte[5 + len];
             buf[0] = 0x5a;
             buf[1] = (byte)frame.type;
-            buf[2] = (byte)(len >> 8);
-            buf[3] = (byte)(len & 0xFF);
+
+            if (frame.reply_type != null)
+            {
+                len = (int)frame.reply_type;
+                buf[2] = (byte)(len >> 8);
+                buf[3] = (byte)(len & 0xFF);
+                len = 0;
+            }
+            else
+            {
+                buf[2] = (byte)(len >> 8);
+                buf[3] = (byte)(len & 0xFF);
+            }
 
             for (int i = 0; i < len; ++i)
             {
@@ -255,7 +276,7 @@ namespace MegaCom
 
             buf[buf.Length - 1] = (byte)(buf.Sum(_ => _) - 0x5a);
 
-            for(int i = 0; i < buf.Length; ++i)
+            for (int i = 0; i < buf.Length; ++i)
             {
                 // important: don't send batches. uart0 buffer will be overrun.
                 // send them one by one.
@@ -269,7 +290,7 @@ namespace MegaCom
 
             if (require_ack)
             {
-                return await m_txstatus.Task;
+                return await m_txstatus[type].Task;
             }
             else
             {

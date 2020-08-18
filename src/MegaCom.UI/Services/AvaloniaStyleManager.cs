@@ -23,15 +23,15 @@ namespace MegaCom.UI.Services
             // We add the style to the window styles section, so it
             // will override the default style defined in App.xaml. 
             if (window.Styles.Count == 0)
-                window.Styles.Add(_seaStyle);
+                window.Styles.Add(_magmaStyle);
             
             // If there are styles defined already, we assume that
             // the first style imported it related to citrus.
             // This allows one to override citrus styles.
-            else window.Styles[0] = _seaStyle;
+            else window.Styles[0] = _magmaStyle;
         }
 
-        public Theme CurrentTheme { get; private set; } = Theme.Sea;
+        public Theme CurrentTheme { get; private set; } = Theme.Magma;
         
         public void UseTheme(Theme theme)
         {

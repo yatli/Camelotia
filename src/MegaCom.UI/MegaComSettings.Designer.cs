@@ -26,12 +26,36 @@ namespace MegaCom.UI {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string Port {
+        public string ComPort {
             get {
-                return ((string)(this["Port"]));
+                return ((string)(this["ComPort"]));
             }
             set {
-                this["Port"] = value;
+                this["ComPort"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("MegaCommandPort1")]
+        public string MidiPort1 {
+            get {
+                return ((string)(this["MidiPort1"]));
+            }
+            set {
+                this["MidiPort1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("MegaCommandPort2")]
+        public string MidiPort2 {
+            get {
+                return ((string)(this["MidiPort2"]));
+            }
+            set {
+                this["MidiPort2"] = value;
             }
         }
     }

@@ -2,7 +2,31 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:MegaCom.UI.Views;assembly=MegaCom.UI"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="MegaCom.UI.Views.DisplayMirrorView">
-    Welcome to Avalonia!
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <local:FrameBufferView 
+      Name="Display"
+      Grid.Row="0" 
+      FrameBuffer="{Binding FrameBuffer}" 
+      InvertColor="{Binding InvertColor}" 
+      />
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+      <ToggleButton Grid.Column="0" Content="Invert color" 
+                    Margin="10"
+                    IsChecked="{Binding InvertColor, Mode=TwoWay}" />
+      <Button Grid.Column="1" Content="Snapshot" 
+              Margin="10"
+              Name="SnapshotButton" />
+    </Grid>
+  </Grid>
 </UserControl>

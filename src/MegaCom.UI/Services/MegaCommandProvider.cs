@@ -60,6 +60,7 @@ namespace Camelotia.Services.Providers
 
         private async Task cwd(string path)
         {
+            Log.WriteLine($"cwd {path}");
             path = path.Replace('\\', '/');
             var cwd_payload = new List<byte>();
             cwd_payload.Add(/*FC_CWD*/0x00);
@@ -75,10 +76,10 @@ namespace Camelotia.Services.Providers
                     string errmsg = Encoding.UTF8.GetString(rx.data.Skip(1).ToArray());
                     Log.WriteLine($"ERR: {errmsg}");
                 }
-                throw new Exception("ls: cwd not ok");
+                throw new Exception("cwd not ok");
             }
 
-            Log.WriteLine("ls: cwd ok");
+            Log.WriteLine("cwd ok");
         }
 
         public async Task<IEnumerable<FileModel>> Get(string path)

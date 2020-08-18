@@ -1,7 +1,10 @@
-﻿using AvaloniaEdit.Document;
+﻿using Avalonia.Threading;
+
+using AvaloniaEdit.Document;
 using AvaloniaEdit.Text;
 
 using ReactiveUI.Fody.Helpers;
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,7 +12,7 @@ using System.Text;
 
 namespace MegaCom.UI.ViewModels
 {
-    class DebugViewModel : ViewModelBase, INotifyPropertyChanged
+    public class DebugViewModel : ViewModelBase, INotifyPropertyChanged
     {
         private ComHost m_host;
 
@@ -20,7 +23,8 @@ namespace MegaCom.UI.ViewModels
         {
             this.m_host = host;
             this.Document = new TextDocument();
-            Log.LogWritten += s => AppendLine($"{DateTime.Now} [HOST] {s}\n");
+            Log.LogWritten += s => Append($"{DateTime.Now} [HOST] {s}\n");
+            Document.UndoStack.SizeLimit = 1;
             DebugProc();
         }
 
@@ -30,21 +34,25 @@ namespace MegaCom.UI.ViewModels
             {
                 var debug = await m_host.recvFrame(ComType.DEBUG);
                 var msg = Encoding.UTF8.GetString(debug.data.ToArray());
-                Console.WriteLine($"{DateTime.Now} [MC]   {msg}\n");
+                Append($"{DateTime.Now} [MC]   {msg}\n");
             }
         }
 
-        private void AppendLine(string v)
+        private void Append(string v)
         {
-            Document.BeginUpdate();
-            Document.Insert(Document.TextLength, $"{v}");
-            if (Document.LineCount > 1000)
+            Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Document.Remove(Document.Lines[0]);
-            }
-            Document.EndUpdate();
+                Document.Insert(Document.TextLength, v);
+                if (Document.LineCount > 1000)
+                {
+                    Document.Remove(Document.Lines[0]);
+                }
+            });
+            Updated();
         }
 
         public override string Name => "Debug";
+
+        public event Action Updated = delegate { };
     }
 }

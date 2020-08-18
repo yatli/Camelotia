@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace MegaCom
+namespace MegaCom.Services
 {
     public class MidiProxy : IDisposable
     {
@@ -18,13 +18,22 @@ namespace MegaCom
         private IMidiInput m_input2;
         private Channel<Frame> m_pending_input;
 
-        public MidiProxy(ComHost host)
+        public MidiProxy(ComHost host, string port1, string port2)
         {
             m_cancel = new CancellationTokenSource();
             m_host = host;
             m_pending_input = Channel.CreateUnbounded<Frame>();//new UnboundedChannelOptions { AllowSynchronousContinuations = true, SingleWriter = false, SingleReader = true });
-            MidiInputProc();
-            MidiOutputProc();
+            MidiInputProc(port1, port2);
+            MidiOutputProc(port1, port2);
+        }
+
+        internal string[] GetAvailablePorts()
+        {
+            return MidiAccessManager
+                .Default
+                .Inputs
+                .Select(_ => _.Name)
+                .ToArray();
         }
 
         public void Dispose()
@@ -43,19 +52,22 @@ namespace MegaCom
             m_pending_input.Writer.WriteAsync(frame).AsTask().Wait();
         }
 
-        private async void MidiInputProc()
+        private async void MidiInputProc(string port1, string port2)
         {
             var cancel = m_cancel.Token;
             var midi_access = MidiAccessManager.Default;
 
-            var input1_desc = midi_access.Inputs.First(_ => _.Name == "MegaCommandPort1");
-            var input2_desc = midi_access.Inputs.First(_ => _.Name == "MegaCommandPort2");
+            var input1_desc = midi_access.Inputs.First(_ => _.Name == port1);
+            var input2_desc = midi_access.Inputs.First(_ => _.Name == port2);
 
             m_input1 = await midi_access.OpenInputAsync(input1_desc.Id);
             m_input2 = await midi_access.OpenInputAsync(input2_desc.Id);
 
             m_input1.MessageReceived += inputMessageReceived;
             m_input2.MessageReceived += inputMessageReceived;
+
+            Log.WriteLine($"Midi port 1 proxied to {port1}");
+            Log.WriteLine($"Midi port 2 proxied to {port2}");
 
             while (!cancel.IsCancellationRequested)
             {
@@ -108,13 +120,13 @@ namespace MegaCom
             }
         }
 
-        private async void MidiOutputProc()
+        private async void MidiOutputProc(string port1, string port2)
         {
             var cancel = m_cancel.Token;
 
             var midi_access = MidiAccessManager.Default;
-            var output1_desc = midi_access.Outputs.First(_ => _.Name == "MegaCommandPort1");
-            var output2_desc = midi_access.Outputs.First(_ => _.Name == "MegaCommandPort2");
+            var output1_desc = midi_access.Outputs.First(_ => _.Name == port1);
+            var output2_desc = midi_access.Outputs.First(_ => _.Name == port2);
 
             var output1 = await midi_access.OpenOutputAsync(output1_desc.Id);
             var output2 = await midi_access.OpenOutputAsync(output2_desc.Id);

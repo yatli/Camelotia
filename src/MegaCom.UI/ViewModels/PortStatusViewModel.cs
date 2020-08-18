@@ -35,15 +35,14 @@ namespace MegaCom.UI.ViewModels
 
             this.WhenPropertyChanged(_ => _.PortName).Subscribe(_ =>
             {
-                MegaComSettings.Default.Port = PortName;
+                MegaComSettings.Default.ComPort = PortName;
                 MegaComSettings.Default.Save();
                 try { m_host.OpenPort(_.Value); }
                 catch { }
                 Connected = m_host.Connected;
             });
 
-            Console.WriteLine(MegaComSettings.Default.Port);
-            PortName = MegaComSettings.Default.Port;
+            PortName = MegaComSettings.Default.ComPort;
             Connected = m_host.Connected;
         }
     }

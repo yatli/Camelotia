@@ -7,9 +7,10 @@ namespace MegaCom
 {
     public class Frame
     {
-        public Frame(ComType _type) {
+        public Frame(ComType _type, ComType _replytype) {
             type = _type;
             data = null;
+            reply_type = _replytype;
         }
 
         public Frame(ComType _type, List<byte> _data) {
@@ -30,5 +31,6 @@ namespace MegaCom
 
         public ComType type;
         public List<byte> data;
+        public ComType? reply_type;
     }
 }
