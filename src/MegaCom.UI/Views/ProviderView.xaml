@@ -137,16 +137,16 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0"
-                        Content="Logout"
-                        Classes="Primary"
-                        HorizontalAlignment="Stretch"
-                        Command="{Binding Logout}" />
                 <Button Grid.Column="1"
                         Content="Unselect"
                         Classes="Primary"
                         HorizontalAlignment="Stretch"
                         Command="{Binding UnselectFile}" />
+              <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Stretch" Margin="5">
+                <TextBlock Text="{Binding Speed}"
+                           VerticalAlignment="Center"/>
+                <ProgressBar Minimum="0" Maximum="100" Value="{Binding TransferProgress}" IsVisible="{Binding ShowTransferProgress}" />
+              </StackPanel>
                 <Button Grid.Column="3" 
                         Content="Create" 
                         Classes="Primary"

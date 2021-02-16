@@ -16,7 +16,7 @@ namespace MegaCom
     public class ComHost : IDisposable
     {
         private const byte COMSYNC_TOKEN = 0x5a;
-        private const int COM_SPEED = 250000;
+        private const int COM_SPEED = 1000000;
 
         private SerialPort m_port;
         private List<byte> m_rxbuf;
@@ -47,7 +47,7 @@ namespace MegaCom
             m_port.DataReceived += onDataReceived;
 
             int ntypes = (int)ComType.MAX;
-            Log.LogToStdout = true;
+            Log.LogToStdout = false;
             m_rxbuf = new List<byte>();
             m_txstatus = new TaskCompletionSource<ComStatus>[ntypes];
             m_rx = Channel.CreateUnbounded<byte[]>();// new UnboundedChannelOptions { AllowSynchronousContinuations = false, SingleReader = true, SingleWriter = true });

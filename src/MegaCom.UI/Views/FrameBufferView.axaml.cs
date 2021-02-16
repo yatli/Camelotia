@@ -20,7 +20,7 @@ namespace MegaCom.UI.Views
 
         public byte[] FrameBuffer
         {
-            get { return GetValue(FrameBufferProperty); }
+            get { return this.GetValue<byte[]>(FrameBufferProperty); }
             set { SetValue(FrameBufferProperty, value); }
         }
 
@@ -45,7 +45,7 @@ namespace MegaCom.UI.Views
 
         public bool InvertColor
         {
-            get { return GetValue(InvertColorProperty); }
+            get { return this.GetValue<bool>(InvertColorProperty); }
             set { SetValue(InvertColorProperty, value); }
         }
 
@@ -73,18 +73,23 @@ namespace MegaCom.UI.Views
             if (FrameBuffer == null) return;
 
             IBrush black, white;
+            IPen blackPen, whitePen;
 
-            if(InvertColor)
+            if (InvertColor)
             {
                 black = Brushes.Black;
                 white = Brushes.White;
-            }else
+            }
+            else
             {
                 black = Brushes.White;
                 white = Brushes.Black;
             }
 
-            context.FillRectangle(black, bounds);
+            blackPen = new Pen(black);
+            whitePen = new Pen(white);
+
+            context.DrawRectangle(black, blackPen, bounds);
 
             var h = bounds.Height * 0.9;
             var w = bounds.Width * 0.9;
@@ -112,7 +117,8 @@ namespace MegaCom.UI.Views
                     var bit = yd % 8;
                     var data = (FrameBuffer[idx] >> bit) & 0x01;
                     var brush = (data == 0) ? black : white;
-                    context.FillRectangle(brush, new Rect(xoff + x * pixsize, yoff + y * pixsize, pixsize, pixsize));
+                    var pen = (data == 0) ? blackPen : whitePen;
+                    context.DrawRectangle(brush, pen, new Rect(xoff + x * pixsize, yoff + y * pixsize, pixsize, pixsize));
                 }
             }
         }

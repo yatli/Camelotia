@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.ReactiveUI;
-using Avalonia.Logging.Serilog;
 
 namespace MegaCom.UI
 {
@@ -11,7 +10,6 @@ namespace MegaCom.UI
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()
                 .UseReactiveUI()
-                .UsePlatformDetect()
-                .LogToDebug();
+                .UsePlatformDetect();
     }
 }

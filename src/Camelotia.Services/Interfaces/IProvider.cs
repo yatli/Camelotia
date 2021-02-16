@@ -1,20 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using Camelotia.Services.Models;
 
 namespace Camelotia.Services.Interfaces
 {
-    public interface IProvider
+    public interface IProvider : INotifyPropertyChanged
     {
-        Guid Id { get; }
-        
-        long? Size { get; }
-        
         string Name { get; }
-        
-        DateTime Created { get; }
         
         string InitialPath { get; }
 
@@ -22,7 +17,7 @@ namespace Camelotia.Services.Interfaces
         
         Task UploadFile(string to, Stream from, string name);
 
-        Task DownloadFile(string from, Stream to);
+        Task DownloadFile(string from, long rawSize, Stream to);
 
         bool CanCreateFolder { get; }
 
@@ -31,21 +26,9 @@ namespace Camelotia.Services.Interfaces
         Task RenameFile(string path, string name);
 
         Task Delete(string path, bool isFolder);
-        
-        IObservable<bool> IsAuthorized { get; }
-        
-        bool SupportsDirectAuth { get; }
 
-        Task DirectAuth(string login, string password);
+        long Speed { get; }
 
-        bool SupportsHostAuth { get; }
-
-        Task HostAuth(string address, int port, string login, string password);
-
-        bool SupportsOAuth { get; }
-
-        Task OAuth();
-
-        Task Logout();
+        int Progress { get; }
     }
 }

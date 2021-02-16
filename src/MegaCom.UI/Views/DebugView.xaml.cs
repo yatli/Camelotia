@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
+using Avalonia.Threading;
 
 using AvaloniaEdit;
 
@@ -15,20 +16,23 @@ namespace MegaCom.UI.Views
 {
     public class DebugView : ReactiveUserControl<DebugViewModel>
     {
-        public TextEditor TextEditor => this.FindControl<TextEditor>("LogView");
+        private TextEditor editor;
+
         public DebugView()
         {
             this.InitializeComponent();
+            editor = this.FindControl<TextEditor>("LogView");
+
             this.WhenActivated(disposables =>
             {
                 ViewModel.Updated += () =>
                 {
-                    // hack until we have https://github.com/AvaloniaUI/AvaloniaEdit/pull/107
-                    var sv = (ScrollViewer)typeof(TextEditor).GetProperty("ScrollViewer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(TextEditor);
-                    if (sv != null)
+                    Dispatcher.UIThread.InvokeAsync(() =>
                     {
+                        // hack until we have https://github.com/AvaloniaUI/AvaloniaEdit/pull/107
+                        var sv = (ScrollViewer)typeof(TextEditor).GetProperty("ScrollViewer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(editor);
                         sv.Offset = sv.Offset.WithY(100000);
-                    }
+                    });
                 };
             });
         }

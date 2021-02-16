@@ -24,6 +24,8 @@ namespace Camelotia.Presentation.ViewModels
 
         public string Size => _file.Size == 0 ? string.Empty : _file.Size.ByteSizeToString();
 
+        public long RawSize => _file.Size;
+
         public bool IsFolder => _file.IsFolder;
 
         public bool IsFile => !_file.IsFolder;

@@ -7,8 +7,6 @@ namespace Camelotia.Presentation.Interfaces
 {
     public interface IProviderViewModel : INotifyPropertyChanged
     {
-        Guid Id { get; }
-        
         IRenameFileViewModel Rename { get; }
 
         ICreateFolderViewModel Folder { get; }
@@ -27,8 +25,6 @@ namespace Camelotia.Presentation.Interfaces
 
         ICommand Refresh { get; }
         
-        ICommand Logout { get; }
-        
         ICommand Back { get; }
         
         ICommand Open { get; }
@@ -41,18 +37,12 @@ namespace Camelotia.Presentation.Interfaces
         
         bool HasErrorMessage { get; }
         
-        bool CanLogout { get; }
-        
         bool CanInteract { get; }
         
         string CurrentPath { get; }
         
         string Description { get; }
-
-        DateTime Created { get; }
         
         string Name { get; }
-        
-        string Size { get; }
     }
 }

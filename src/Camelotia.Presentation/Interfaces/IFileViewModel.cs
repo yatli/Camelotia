@@ -17,5 +17,7 @@ namespace Camelotia.Presentation.Interfaces
         string Path { get; }
 
         string Size { get; }
+
+        long RawSize { get; }
     }
 }

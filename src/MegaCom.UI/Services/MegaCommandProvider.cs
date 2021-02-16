@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Ports;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Camelotia.Services.Interfaces;
@@ -13,88 +16,62 @@ using Camelotia.Services.Models;
 
 using MegaCom;
 
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
+
 namespace Camelotia.Services.Providers
 {
-    public sealed class MegaCommandProvider : IProvider
+    public sealed class MegaCommandProvider : ReactiveObject, IProvider
     {
-        private readonly ISubject<bool> _isAuthorized = new ReplaySubject<bool>();
         private MegaCom.ComHost _host;
-        private Guid _id;
-        private DateTime _created;
 
         public MegaCommandProvider(ComHost host)
         {
             _host = host;
-            _isAuthorized.OnNext(true);
-            _id = Guid.NewGuid();
-            _created = DateTime.Now;
         }
-
-        public long? Size => null;
-
-        public Guid Id => _id; 
 
         public string InitialPath => "\\";
 
         public string Name => $"MegaCommand";
 
-        public DateTime Created => _created;
-
-        public IObservable<bool> IsAuthorized => _isAuthorized;
-
-        public bool SupportsDirectAuth => false;
-
-        public bool SupportsHostAuth => false;
-
-        public bool SupportsOAuth => false;
-
         public bool CanCreateFolder => true;
 
-        public Task OAuth() => Task.CompletedTask;
+        [Reactive]
+        public long Speed { get; set; }
+        [Reactive]
+        public int Progress { get; set; }
 
-        public Task HostAuth(string address, int port, string login, string password) => Task.CompletedTask;
-
-        public Task DirectAuth(string login, string password) => Task.CompletedTask;
-
-        public Task Logout() => Task.CompletedTask;
-
-        private async Task cwd(string path)
+        /// <returns>true if error occurs</returns>
+        private async Task<bool> cwd(string path)
         {
             Log.WriteLine($"cwd {path}");
             path = path.Replace('\\', '/');
             var cwd_payload = new List<byte>();
-            cwd_payload.Add(/*FC_CWD*/0x00);
+            cwd_payload.Add(0x00 /*FC_CWD*/);
             cwd_payload.AddRange(Encoding.UTF8.GetBytes(path));
             cwd_payload.Add(/*null string termination*/0x00);
             var tx = await _host.sendFrame(new Frame(ComType.FILESERVER, cwd_payload));
             if (tx != ComStatus.ACK) { throw new Exception("ls: cwd tx"); }
             var rx = await _host.recvFrame(ComType.FILESERVER);
-            if (rx.data[0] != 0x06 /*FS_OK*/)
-            {
-                if (rx.data[0] == 0x08 /*FS_ERROR*/)
-                {
-                    string errmsg = Encoding.UTF8.GetString(rx.data.Skip(1).ToArray());
-                    Log.WriteLine($"ERR: {errmsg}");
-                }
-                throw new Exception("cwd not ok");
-            }
-
-            Log.WriteLine("cwd ok");
+            return checkFSError(rx);
         }
 
         public async Task<IEnumerable<FileModel>> Get(string path)
         {
             path = path.Replace('\\', '/');
             Log.WriteLine($"Get: path={path}");
-            await cwd(path);
+            if (await cwd(path))
+            {
+                return Enumerable.Empty<FileModel>();
+            }
 
             var tx = await _host.sendFrame(new Frame(
                 ComType.FILESERVER,
-                new byte[] { /* FC_LS */ 0x01 }));
+                new byte[] { 0x01 /* FC_LS */ }));
             if (tx != ComStatus.ACK) { throw new Exception("ls: ls tx"); }
             var files = new List<FileModel>();
             var ls = await _host.recvFrame(ComType.FILESERVER);
-            while (ls.type == ComType.FILESERVER && ls.data[0] == 0x07)
+            while (ls.type == ComType.FILESERVER && ls.data[0] == 0x09 /*FS_RSP_DATA*/)
             {
                 var ls_item = new LsItem(ls);
                 Log.WriteLine($"ls item: {ls_item.Name}");
@@ -122,11 +99,70 @@ namespace Camelotia.Services.Providers
         {
         }
 
-        public async Task UploadFile(string to, Stream from, string name)
+        public async Task UploadFile(string path, Stream from, string name)
         {
+            path = path.Replace('\\', '/');
+            Log.WriteLine($"UploadFile: path={path}, name={name}");
+            await cwd(path);
+
+            var payload = new List<byte>();
+            payload.Add(0x03 /* FC_PUT_BEGIN */);
+            payload.AddRange(Encoding.UTF8.GetBytes(name));
+            payload.Add(/*null string termination*/0x00);
+
+            var tx = await _host.sendFrame(new Frame(
+                ComType.FILESERVER,
+                payload));
+            if (tx != ComStatus.ACK) { throw new Exception("UploadFile: begin tx"); }
+            var rx = await _host.recvFrame(ComType.FILESERVER);
+            if (checkFSError(rx)) { throw new Exception("UploadFile: begin rx"); }
+
+            Speed = 0;
+            Stopwatch sw = Stopwatch.StartNew();
+            Progress = 0;
+            long sent = 0;
+            long sentP = 0;
+            long size = from.Length;
+
+            var buf = new byte[512];
+            while (sent != size)
+            {
+                int w = await from.ReadAsync(buf, 0, 512);
+                if (w <= 0) break;
+
+                payload.Clear();
+                payload.Add(0x04 /* FS_PUT_DATA */);
+                payload.AddRange(buf.Take(w));
+
+                tx = await _host.sendFrame(new Frame(
+                    ComType.FILESERVER,
+                    payload));
+                if (tx != ComStatus.ACK) { throw new Exception("UploadFile: data tx"); }
+                rx = await _host.recvFrame(ComType.FILESERVER);
+                if (checkFSError(rx)) { throw new Exception("UploadFile: data rx"); }
+
+                sent += w;
+                sentP += w;
+
+                Progress = (int)(sent * 100 / size);
+                if (sw.ElapsedMilliseconds > 2000)
+                {
+                    Speed = sentP / sw.ElapsedMilliseconds;
+                    sentP = 0;
+                    sw.Restart();
+                }
+            }
+
+            // send_complete
+            tx = await _host.sendFrame(new Frame(
+                ComType.FILESERVER,
+                new byte[] { 0x05 /* FC_PUT_END */ }));
+            if (tx != ComStatus.ACK) { throw new Exception("UploadFile: end tx"); }
+            rx = await _host.recvFrame(ComType.FILESERVER);
+            if (checkFSError(rx)) { throw new Exception("UploadFile: end rx"); }
         }
 
-        public async Task DownloadFile(string path, Stream to)
+        public async Task DownloadFile(string path, long expectedSize, Stream to)
         {
             path = path.Replace('\\', '/');
             Log.WriteLine($"DownloadFile: path={path}");
@@ -134,23 +170,67 @@ namespace Camelotia.Services.Providers
             var fname = Path.GetFileName(path);
             await cwd(dir);
 
-            var get_payload = new List<byte>();
-            get_payload.Add(/*FC_GET*/0x02);
-            get_payload.AddRange(Encoding.UTF8.GetBytes(fname));
-            get_payload.Add(/*null string termination*/0x00);
+            var payload = new List<byte>();
+            payload.Add(0x02 /*FC_GET*/);
+            payload.AddRange(Encoding.UTF8.GetBytes(fname));
+            payload.Add(/*null string termination*/0x00);
+
+            Speed = 0;
+            Stopwatch sw = Stopwatch.StartNew();
+            long sz = 0;
+            long total = 0;
 
             var tx = await _host.sendFrame(new Frame(
-                ComType.FILESERVER, get_payload));
+                ComType.FILESERVER, payload));
             if (tx != ComStatus.ACK) { throw new Exception("get: get tx"); }
             var ls = await _host.recvFrame(ComType.FILESERVER);
-            while (ls.data[0] == 0x07)
+            while (ls.data[0] == 0x09 /* FS_RSP_DATA */)
             {
                 var data = ls.data.Skip(1).ToArray();
                 await to.WriteAsync(data, 0, data.Length);
-                Log.WriteLine($"get: got {data.Length} bytes");
-                ls = await _host.recvFrame(ComType.FILESERVER);
+                total += data.Length;
+                sz += data.Length;
+                Progress = (int)(total * 100 / expectedSize);
+                if (sw.ElapsedMilliseconds > 2000)
+                {
+                    Speed = sz / sw.ElapsedMilliseconds;
+                    sz = 0;
+                    sw.Restart();
+                }
+
+                // Log.WriteLine($"get: got {data.Length} bytes");
+                CancellationTokenSource cancel = new CancellationTokenSource();
+                cancel.CancelAfter(1000);
+                try
+                {
+                    ls = await _host.recvFrame(ComType.FILESERVER, cancel.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    Log.WriteLine($"get: timed out");
+                    throw new FileServerTimeoutException();
+                }
             }
             to.Close();
+            Log.WriteLine($"get: {path} download complete.");
+        }
+
+        /// <returns>true if error occurs</returns>
+        private bool checkFSError(Frame frame)
+        {
+            int code = frame.data[0];
+            switch (code)
+            {
+                case 0x08:
+                    return false;
+                case 0x0A:
+                    string errmsg = Encoding.UTF8.GetString(frame.data.Skip(1).ToArray());
+                    Log.WriteLine($"ERR: {errmsg}");
+                    return true;
+                default:
+                    Log.WriteLine($"ERR: unknown FS return code {code}");
+                    return true;
+            }
         }
     }
 }
