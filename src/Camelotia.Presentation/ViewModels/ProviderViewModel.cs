@@ -32,8 +32,10 @@ namespace Camelotia.Presentation.ViewModels
             RenameFileViewModelFactory createRename,
             FileViewModelFactory createFile,
             IFileManager fileManager,
-            IProvider provider)
+            IProvider provider,
+            Func<IFileViewModel, string> validator)
         {
+            ValidateFile = validator;
             _provider = provider;
             Folder = createFolder(this);
             Rename = createRename(this);
@@ -275,5 +277,7 @@ namespace Camelotia.Presentation.ViewModels
         public ICommand Back => _back;
 
         public ICommand Open => _open;
+
+        public Func<IFileViewModel,string> ValidateFile { get; }
     }
 }

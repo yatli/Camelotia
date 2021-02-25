@@ -3,6 +3,9 @@
              d:DataContext="{d:DesignInstance interfaces:IRenameFileViewModel, IsDesignTimeCreatable=False}"
              xmlns:interfaces="clr-namespace:Camelotia.Presentation.Interfaces;assembly=Camelotia.Presentation"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
+             xmlns:iac="using:Avalonia.Xaml.Interactions.Custom"
              x:Class="MegaCom.UI.Views.RenameFileView"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              mc:Ignorable="d" Background="{DynamicResource ThemeCardBrush}">
@@ -30,7 +33,13 @@
             <TextBlock Text="{Binding OldName}" />
         </StackPanel>
         <TextBlock Text="Please, enter new file name:" Margin="0 5" />
-        <TextBox Text="{Binding NewName, Mode=TwoWay}" Watermark="File name..." />
+		<TextBox Text="{Binding NewName, Mode=TwoWay}" Watermark="File name..." KeyDown="OnKeyDown">
+			<i:Interaction.Behaviors>
+				<ia:DataTriggerBehavior Binding="{Binding IsVisible}" ComparisonCondition="Equal" Value="True">
+					<iac:FocusControlAction />
+				</ia:DataTriggerBehavior>
+			</i:Interaction.Behaviors>
+		</TextBox>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="3*" />

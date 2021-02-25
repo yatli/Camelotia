@@ -1,7 +1,9 @@
 ﻿using System.Globalization;
+
 using Camelotia.Presentation.Interfaces;
 using Camelotia.Services.Extensions;
 using Camelotia.Services.Models;
+
 using ReactiveUI;
 
 namespace Camelotia.Presentation.ViewModels
@@ -33,6 +35,15 @@ namespace Camelotia.Presentation.ViewModels
         public string Name => _file.Name;
 
         public string Path => _file.Path;
+
+        public string Validation
+        {
+            get
+            {
+                var validator = Provider.ValidateFile;
+                return validator?.Invoke(this) ?? "";
+            }
+        }
 
         public override bool Equals(object obj)
         {

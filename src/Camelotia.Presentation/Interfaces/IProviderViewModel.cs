@@ -28,6 +28,8 @@ namespace Camelotia.Presentation.Interfaces
         ICommand Back { get; }
         
         ICommand Open { get; }
+
+        Func<IFileViewModel, string> ValidateFile { get; }
         
         bool IsCurrentPathEmpty { get; }
         

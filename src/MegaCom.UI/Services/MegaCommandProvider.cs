@@ -91,8 +91,34 @@ namespace Camelotia.Services.Providers
         {
         }
 
-        public async Task RenameFile(string path, string name)
+        public async Task RenameFile(string path, string toname)
         {
+            path = path.Replace('\\', '/');
+            Log.WriteLine($"RenameFile: path={path}");
+            var dir = Path.GetDirectoryName(path);
+            var fromname = Path.GetFileName(path);
+            if (await cwd(dir))
+            {
+                return;
+            }
+            var payload = new List<byte>();
+            payload.Add(0x07 /*FC_RENAME*/);
+            payload.AddRange(Encoding.UTF8.GetBytes(fromname));
+            payload.Add(/*null string termination*/0x00);
+            payload.AddRange(Encoding.UTF8.GetBytes(toname));
+            payload.Add(/*null string termination*/0x00);
+
+            var tx = await _host.sendFrame(new Frame(
+                ComType.FILESERVER,
+                payload.ToArray()));
+            if (tx != ComStatus.ACK) { throw new Exception("rename: tx"); }
+            Log.WriteLine("rename: tx sent");
+            var rx = await _host.recvFrame(ComType.FILESERVER);
+            if (checkFSError(rx))
+            {
+                throw new Exception("rename: rx");
+            }
+            Log.WriteLine("rename: rx received");
         }
 
         public async Task Delete(string path, bool isFolder)

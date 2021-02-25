@@ -8,7 +8,7 @@ namespace Camelotia.Presentation.Interfaces
 
         IProviderViewModel Provider { get; }
 
-        string Modified { get; }
+        string Validation { get; }
 
         bool IsFolder { get; }
 

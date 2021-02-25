@@ -1,7 +1,15 @@
+using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
+
 using Camelotia.Presentation.Interfaces;
+
 using ReactiveUI;
+
+using System;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 
 namespace MegaCom.UI.Views
 {
@@ -11,6 +19,14 @@ namespace MegaCom.UI.Views
         {
             this.WhenActivated(disposables => { });
             AvaloniaXamlLoader.Load(this);
+        }
+
+        public void OnKeyDown(object sender, KeyEventArgs args)
+        {
+            if(args.Key == Key.Enter)
+            {
+                ViewModel.Rename.Execute(null);
+            }
         }
     }
 }

@@ -18,14 +18,15 @@ namespace MegaCom.UI.ViewModels
 {
     public sealed class FileBrowserViewModel : ViewModelBase, IFileBrowserViewModel
     {
-        public FileBrowserViewModel(IFileManager fm, IProvider provider)
+        public FileBrowserViewModel(IFileManager fm, IProvider provider, Func<IFileViewModel,string> validator)
         {
             SelectedProvider = new ProviderViewModel(
                 vm => new CreateFolderViewModel(vm, provider),
                 vm => new RenameFileViewModel(vm, provider),
                 (file, vm) => new FileViewModel(vm, file),
                 fm,
-                provider);
+                provider,
+                validator);
         }
         
         public IProviderViewModel SelectedProvider { get; }

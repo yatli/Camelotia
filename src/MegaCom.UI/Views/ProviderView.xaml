@@ -6,7 +6,9 @@
              xmlns:views="clr-namespace:MegaCom.UI.Views"
              x:Class="MegaCom.UI.Views.ProviderView"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             mc:Ignorable="d">
+             mc:Ignorable="d"
+			 KeyDown="OnKeyDown"
+			 >
     <Grid>
         <Grid>
             <Grid.RowDefinitions>
@@ -41,13 +43,15 @@
                     BorderThickness="0 2 0 2"
                     BorderBrush="{DynamicResource ThemeBorderLowBrush}">
                 <Grid>
-                    <ListBox Padding="0"
+                    <ListBox x:Name="FilesList"
+						     Padding="0"
                              Background="{DynamicResource ThemeCardBrush}"
                              BorderThickness="0"
                              SelectionMode="Toggle"
                              Items="{Binding Files}"
                              IsVisible="{Binding IsReady}"
                              ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                             KeyDown="OnListBoxKeyDown"
                              SelectedItem="{Binding SelectedFile, Mode=TwoWay}">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="interfaces:IFileViewModel">
