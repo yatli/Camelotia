@@ -2,6 +2,9 @@
 
 MegaCom host software for communicating with MegaCommandLive(https://github.com/jmamma/MIDICtrl20_MegaCommand)
 
+![image](https://user-images.githubusercontent.com/20684720/112721561-73983a80-8f3f-11eb-87d6-efc260bc924a.png)
+
+
 ## Features:
 
 - File server for accessing SD card content
